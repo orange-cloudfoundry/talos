@@ -1,0 +1,93 @@
+$id: "https://github.com/siderolabs/talos"
+# Note: this schema was manually authored using intellij support for Json schema version 7
+# providing coding assistance
+# This PARTIAL schema is based on content from https://github.com/siderolabs/talos/blob/main/pkg/machinery/config/types/v1alpha1/v1alpha1_types.go
+# It was tested in intellij against https://github.com/goss-org/goss/master/docs/goss.yaml
+# both for completion and code analysis use-cases.
+# Limitations / missing support
+# - patterns
+# - advanced matchers
+# - templates
+$schema: http://json-schema.org/draft-07/schema#
+title: "Talos-file-schema"
+definitions:
+  Machine:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - unknown
+          - init
+          - controlplane
+          - worker
+      install: { "$ref":"#/definitions/Install" }
+  Install:
+    type: object
+    description: the installation options for preparing a node.
+    properties:
+      disk:
+        description: The disk used for installations.
+        examples:
+          - /dev/sda
+          - /dev/nvme0
+      diskSelector: { "$ref":"#/definitions/InstallDiskSelector" }
+      extraKernelArgs:
+        description: Allows for supplying extra kernel args via the bootloader.
+        examples: [ "talos.platform=metal", "reboot=k" ]
+        type: string
+      image:
+        description: |
+          Allows for supplying the image used to perform the installation.
+          Image reference for each Talos release can be found on
+          [GitHub releases page](https://github.com/siderolabs/talos/releases).
+        type: string
+        examples:
+          - "ghcr.io/siderolabs/installer:latest"
+      extensions: { "$ref":"#/definitions/InstallExtensions" }
+      bootloader:
+        description: Indicates if a bootloader should be installed.
+        type: string
+        enum:
+          - true
+          - yes
+          - false
+          - no
+      wipe:
+        description: Indicates if the installation disk should be wiped at installation time.
+        type: string
+        default: true
+        enum:
+          - true
+          - yes
+          - false
+          - no
+      legacyBIOSSupport:
+        description: |
+          Indicates if MBR partition should be marked as bootable (active).
+          Should be enabled only for the systems with legacy BIOS that doesn't support GPT partitioning scheme.
+        type: string
+        enum:
+          - true
+          - yes
+          - false
+          - no
+  InstallDiskSelector:
+    description: |
+      Look up disk using disk attributes like model, size, serial and others.
+      Always has priority over `disk`.
+    type: object
+  InstallExtensions:
+    description: Allows for supplying additional system extension images to install on top of base Talos image.
+    type: object
+properties:
+  version:
+    type: string
+    enum:
+      - "v1alpha1"
+  persist:
+    type: boolean
+    default: true
+  machine: { "$ref":"#/definitions/Machine" }
+  cluster:
+    type: object
